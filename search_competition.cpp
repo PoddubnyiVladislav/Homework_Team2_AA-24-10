@@ -1,172 +1,172 @@
-import time
-import mmap
-import re
-from collections import defaultdict
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <chrono>
+#include <algorithm>
+#include <cstring>
+#include <unordered_map>
 
-def artamonova_search(text, pattern):
-    """Алгоритм Бойера-Мура-Хорспула с быстрым хэшированием"""
-    m = len(pattern)
-    n = len(text)
-    if m == 0 or n == 0: return 0
-    
-    # Preprocessing
-    skip = defaultdict(lambda: m)
-    for i in range(m - 1):
-        skip[ord(pattern[i])] = m - i - 1
-    
-    # Searching
-    count = i = 0
-    while i <= n - m:
-        j = m - 1
-        while j >= 0 and text[i + j] == pattern[j]:
-            j -= 1
-        if j < 0:
-            count += 1
-            i += m
-        else:
-            i += skip[ord(text[i + m - 1])]
-    return count
+using namespace std;
+using namespace std::chrono;
 
-def girshfeld_search(text, pattern):
-    """Модифицированный алгоритм Кнута-Морриса-Пратта с кэшем переходов"""
-    m = len(pattern)
-    n = len(text)
-    if m == 0: return 0
-    
-    # Preprocessing
-    pi = [0] * m
-    k = 0
-    for q in range(1, m):
-        while k > 0 and pattern[k] != pattern[q]:
-            k = pi[k - 1]
-        if pattern[k] == pattern[q]:
-            k += 1
-        pi[q] = k
-    
-    # Searching
-    count = q = 0
-    for i in range(n):
-        while q > 0 and pattern[q] != text[i]:
-            q = pi[q - 1]
-        if pattern[q] == text[i]:
-            q += 1
-        if q == m:
-            count += 1
-            q = pi[q - 1]
-    return count
+// Прототипы функций
+int artamonova_search(const string& text, const string& pattern);
+int girshfeld_search(const string& text, const string& pattern);
+int govoruhina_search(const string& text, const string& pattern);
+int poddubnyi_search(const string& text, const string& pattern);
+int svetashova_search(const string& text, const string& pattern);
 
-def govoruhina_search(text, pattern):
-    """Алгоритм Рабина-Карпа с полиномиальным хэшированием"""
-    m = len(pattern)
-    n = len(text)
-    if m == 0: return 0
-    
-    # Constants
-    p = 31
-    mod = 10**9 + 7
-    p_pow = pow(p, m - 1, mod)
-    
-    # Hash calculation
-    pattern_hash = 0
-    text_hash = 0
-    for i in range(m):
-        pattern_hash = (pattern_hash * p + ord(pattern[i])) % mod
-        text_hash = (text_hash * p + ord(text[i])) % mod
-    
-    count = 0
-    for i in range(n - m + 1):
-        if text_hash == pattern_hash:
-            if text[i:i+m] == pattern:
-                count += 1
-        if i < n - m:
-            text_hash = ((text_hash - ord(text[i]) * p_pow) * p + ord(text[i + m])) % mod
-    return count
+struct SearchResult {
+    string name;
+    int count;
+    double time_ms;
+};
 
-def poddubnyi_search(text, pattern):
-    """Гибридный алгоритм (Бойер-Мур + КМП) с оптимизацией для Unicode"""
-    m = len(pattern)
-    n = len(text)
-    if m == 0: return 0
-    if m > n: return 0
-    
-    # Быстрая проверка по последнему символу
-    last_char = pattern[-1]
-    occurrences = 0
-    i = m - 1
-    while i < n:
-        if text[i] == last_char:
-            # Полная проверка
-            if text[i - m + 1:i + 1] == pattern:
-                occurrences += 1
-                i += m
-            else:
-                i += 1
-        else:
-            # Прыжок к следующему возможному вхождению
-            try:
-                i += max(1, m - 1 - pattern.rindex(text[i]))
-            except:
-                i += m
-    return occurrences
+// Заглушки функций (каждый участник заменит своей реализацией)
 
-def svetashova_search(text, pattern):
-    """Оптимизированный поиск с использованием memory-mapped файлов и векторизации"""
-    # Используем байтовые строки для работы с mmap
-    if isinstance(text, str):
-        text = text.encode()
-    if isinstance(pattern, str):
-        pattern = pattern.encode()
-    
-    count = 0
-    start = 0
-    while True:
-        pos = text.find(pattern, start)
-        if pos == -1:
-            break
-        count += 1
-        start = pos + 1
-    return count
+int artamonova_search(const string& text, const string& pattern) {
+    // Артамонова: Алгоритм Бойера-Мура
+    // TODO: Заменить на оптимизированную реализацию
+    int count = 0;
+    size_t pos = 0;
+    while ((pos = text.find(pattern, pos)) != string::npos) {
+        count++;
+        pos += pattern.length();
+    }
+    return count;
+}
 
-def main():
-    filename = input("Введите имя файла: ")
-    pattern = input("Введите подстроку для поиска: ")
-    
-    try:
-        with open(filename, 'r', encoding='utf-8') as file:
-            text = file.read()
-    except FileNotFoundError:
-        print("Файл не найден!")
-        return
-    
-    searchers = [
-        ("Artamonova", artamonova_search),
-        ("Girshfeld", girshfeld_search),
-        ("Govoruhina", govoruhina_search),
-        ("Poddubnyi", poddubnyi_search),
-        ("Svetashova", svetashova_search)
-    ]
-    
-    results = []
-    
-    for name, searcher in searchers:
-        start_time = time.perf_counter()
-        count = searcher(text, pattern)
-        end_time = time.perf_counter()
-        execution_time = end_time - start_time
-        results.append((name, count, execution_time))
-    
-    # Запись результатов в файл
-    with open("search_results.txt", "w", encoding='utf-8') as result_file:
-        result_file.write("Результаты поиска:\n")
-        result_file.write("==================\n")
-        for name, count, time_taken in results:
-            result_file.write(f"{name}: {count} вхождений, {time_taken:.6f} секунд\n")
-    
-    # Определение победителя
-    best_result = min(results, key=lambda x: (x[2], -x[1]))
-    print(f"\nЛучший результат: {best_result[0]}")
-    print(f"Найдено вхождений: {best_result[1]}")
-    print(f"Время выполнения: {best_result[2]:.6f} секунд")
+int girshfeld_search(const string& text, const string& pattern) {
+    // Гиршфельд: Алгоритм Кнута-Морриса-Пратта
+    // TODO: Заменить на оптимизированную реализацию
+    int count = 0;
+    size_t pos = 0;
+    while ((pos = text.find(pattern, pos)) != string::npos) {
+        count++;
+        pos += 1; // Для перекрывающихся вхождений
+    }
+    return count;
+}
 
-if __name__ == "__main__":
-    main()
+int govoruhina_search(const string& text, const string& pattern) {
+    // Говорухина: Алгоритм Рабина-Карпа
+    // TODO: Заменить на оптимизированную реализацию
+    int count = 0;
+    size_t pos = 0;
+    while ((pos = text.find(pattern, pos)) != string::npos) {
+        count++;
+        pos += pattern.length();
+    }
+    return count;
+}
+
+int poddubnyi_search(const string& text, const string& pattern) {
+    // Поддубный: Гибридный алгоритм (Бойер-Мур + КМП)
+    // TODO: Заменить на оптимизированную реализацию
+    int count = 0;
+    size_t pos = 0;
+    while ((pos = text.find(pattern, pos)) != string::npos) {
+        count++;
+        pos += pattern.length();
+    }
+    return count;
+}
+
+int svetashova_search(const string& text, const string& pattern) {
+    // Светашова: Оптимизированный поиск с memory mapping
+    // TODO: Заменить на оптимизированную реализацию
+    int count = 0;
+    size_t pos = 0;
+    while ((pos = text.find(pattern, pos)) != string::npos) {
+        count++;
+        pos += 1;
+    }
+    return count;
+}
+
+string readFile(const string& filename) {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        throw runtime_error("Не удалось открыть файл: " + filename);
+    }
+    
+    string content((istreambuf_iterator<char>(file)),
+                   istreambuf_iterator<char>());
+    file.close();
+    return content;
+}
+
+void writeResultsToFile(const vector<SearchResult>& results, const string& pattern) {
+    ofstream outFile("search_results.txt");
+    if (!outFile.is_open()) {
+        cerr << "Не удалось создать файл результатов!" << endl;
+        return;
+    }
+    
+    outFile << "Результаты поиска подстроки: \"" << pattern << "\"" << endl;
+    outFile << "==========================================" << endl;
+    
+    for (const auto& result : results) {
+        outFile << result.name << ": " << result.count 
+                << " вхождений, " << result.time_ms << " мс" << endl;
+    }
+    outFile.close();
+}
+
+int main() {
+    string filename, pattern;
+    
+    cout << "Введите имя файла: ";
+    cin >> filename;
+    cout << "Введите подстроку для поиска: ";
+    cin >> pattern;
+    
+    try {
+        string text = readFile(filename);
+        cout << "Файл загружен. Размер: " << text.length() << " символов" << endl;
+        
+        vector<pair<string, function<int(const string&, const string&)>>> searchers = {
+            {"Artamonova", artamonova_search},
+            {"Girshfeld", girshfeld_search},
+            {"Govoruhina", govoruhina_search},
+            {"Poddubnyi", poddubnyi_search},
+            {"Svetashova", svetashova_search}
+        };
+        
+        vector<SearchResult> results;
+        
+        for (const auto& searcher : searchers) {
+            auto start = high_resolution_clock::now();
+            int count = searcher.second(text, pattern);
+            auto end = high_resolution_clock::now();
+            
+            double time_ms = duration_cast<microseconds>(end - start).count() / 1000.0;
+            
+            results.push_back({searcher.first, count, time_ms});
+            
+            cout << searcher.first << ": " << count << " вхождений, " 
+                 << time_ms << " мс" << endl;
+        }
+        
+        // Запись результатов в файл
+        writeResultsToFile(results, pattern);
+        
+        // Определение победителя
+        auto best = min_element(results.begin(), results.end(),
+            [](const SearchResult& a, const SearchResult& b) {
+                return a.time_ms < b.time_ms;
+            });
+        
+        cout << "\nЛучший результат: " << best->name << endl;
+        cout << "Время: " << best->time_ms << " мс" << endl;
+        cout << "Найдено вхождений: " << best->count << endl;
+        cout << "\nПолные результаты сохранены в search_results.txt" << endl;
+        
+    } catch (const exception& e) {
+        cerr << "Ошибка: " << e.what() << endl;
+        return 1;
+    }
+    
+    return 0;
+}
