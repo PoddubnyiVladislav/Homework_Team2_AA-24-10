@@ -3,170 +3,94 @@
 #include <string>
 #include <vector>
 #include <chrono>
-#include <algorithm>
-#include <cstring>
-#include <unordered_map>
+#include <functional>
 
 using namespace std;
 using namespace std::chrono;
 
-// Прототипы функций
-int artamonova_search(const string& text, const string& pattern);
-int girshfeld_search(const string& text, const string& pattern);
-int govoruhina_search(const string& text, const string& pattern);
-int poddubnyi_search(const string& text, const string& pattern);
-int svetashova_search(const string& text, const string& pattern);
-
-struct SearchResult {
-    string name;
-    int count;
-    double time_ms;
-};
-
-// Заглушки функций (каждый участник заменит своей реализацией)
-
-int artamonova_search(const string& text, const string& pattern) {
-    // Артамонова: Алгоритм Бойера-Мура
-    // TODO: Заменить на оптимизированную реализацию
-    int count = 0;
-    size_t pos = 0;
-    while ((pos = text.find(pattern, pos)) != string::npos) {
-        count++;
-        pos += pattern.length();
-    }
-    return count;
+// Заглушки функций участников (4 участника)
+pair<bool, vector<int>> participant1(const string& filepath, const string& word, bool output = false) {
+    // TODO: Участник 1 реализует здесь свой алгоритм поиска
+    vector<int> dummy_indices;
+    if (output) cout << "Participant1: stub function" << endl;
+    return {false, dummy_indices};
 }
 
-int girshfeld_search(const string& text, const string& pattern) {
-    // Гиршфельд: Алгоритм Кнута-Морриса-Пратта
-    // TODO: Заменить на оптимизированную реализацию
-    int count = 0;
-    size_t pos = 0;
-    while ((pos = text.find(pattern, pos)) != string::npos) {
-        count++;
-        pos += 1; // Для перекрывающихся вхождений
-    }
-    return count;
+pair<bool, vector<int>> participant2(const string& filepath, const string& word, bool output = false) {
+    // TODO: Участник 2 реализует здесь свой алгоритм поиска
+    vector<int> dummy_indices;
+    if (output) cout << "Participant2: stub function" << endl;
+    return {false, dummy_indices};
 }
 
-int govoruhina_search(const string& text, const string& pattern) {
-    // Говорухина: Алгоритм Рабина-Карпа
-    // TODO: Заменить на оптимизированную реализацию
-    int count = 0;
-    size_t pos = 0;
-    while ((pos = text.find(pattern, pos)) != string::npos) {
-        count++;
-        pos += pattern.length();
-    }
-    return count;
+pair<bool, vector<int>> participant3(const string& filepath, const string& word, bool output = false) {
+    // TODO: Участник 3 реализует здесь свой алгоритм поиска
+    vector<int> dummy_indices;
+    if (output) cout << "Participant3: stub function" << endl;
+    return {false, dummy_indices};
 }
 
-int poddubnyi_search(const string& text, const string& pattern) {
-    // Поддубный: Гибридный алгоритм (Бойер-Мур + КМП)
-    // TODO: Заменить на оптимизированную реализацию
-    int count = 0;
-    size_t pos = 0;
-    while ((pos = text.find(pattern, pos)) != string::npos) {
-        count++;
-        pos += pattern.length();
-    }
-    return count;
-}
-
-int svetashova_search(const string& text, const string& pattern) {
-    // Светашова: Оптимизированный поиск с memory mapping
-    // TODO: Заменить на оптимизированную реализацию
-    int count = 0;
-    size_t pos = 0;
-    while ((pos = text.find(pattern, pos)) != string::npos) {
-        count++;
-        pos += 1;
-    }
-    return count;
-}
-
-string readFile(const string& filename) {
-    ifstream file(filename);
-    if (!file.is_open()) {
-        throw runtime_error("Не удалось открыть файл: " + filename);
-    }
-    
-    string content((istreambuf_iterator<char>(file)),
-                   istreambuf_iterator<char>());
-    file.close();
-    return content;
-}
-
-void writeResultsToFile(const vector<SearchResult>& results, const string& pattern) {
-    ofstream outFile("search_results.txt");
-    if (!outFile.is_open()) {
-        cerr << "Не удалось создать файл результатов!" << endl;
-        return;
-    }
-    
-    outFile << "Результаты поиска подстроки: \"" << pattern << "\"" << endl;
-    outFile << "==========================================" << endl;
-    
-    for (const auto& result : results) {
-        outFile << result.name << ": " << result.count 
-                << " вхождений, " << result.time_ms << " мс" << endl;
-    }
-    outFile.close();
+pair<bool, vector<int>> participant4(const string& filepath, const string& word, bool output = false) {
+    // TODO: Участник 4 реализует здесь свой алгоритм поиска
+    vector<int> dummy_indices;
+    if (output) cout << "Participant4: stub function" << endl;
+    return {false, dummy_indices};
 }
 
 int main() {
-    string filename, pattern;
+    string filename, word;
     
-    cout << "Введите имя файла: ";
+    // Ввод данных
+    cout << "Enter file path: ";
     cin >> filename;
-    cout << "Введите подстроку для поиска: ";
-    cin >> pattern;
+    cout << "Enter word/phrase to search: ";
+    cin.ignore(); // очищаем буфер
+    getline(cin, word);
     
-    try {
-        string text = readFile(filename);
-        cout << "Файл загружен. Размер: " << text.length() << " символов" << endl;
-        
-        vector<pair<string, function<int(const string&, const string&)>>> searchers = {
-            {"Artamonova", artamonova_search},
-            {"Girshfeld", girshfeld_search},
-            {"Govoruhina", govoruhina_search},
-            {"Poddubnyi", poddubnyi_search},
-            {"Svetashova", svetashova_search}
-        };
-        
-        vector<SearchResult> results;
-        
-        for (const auto& searcher : searchers) {
-            auto start = high_resolution_clock::now();
-            int count = searcher.second(text, pattern);
-            auto end = high_resolution_clock::now();
+    cout << "\n=== SEARCH RESULTS ===" << endl;
+    cout << "File: " << filename << endl;
+    cout << "Search term: " << word << endl;
+    cout << "========================\n" << endl;
+
+    // Список участников и их функций
+    vector<pair<string, function<pair<bool, vector<int>>(const string&, const string&, bool)>>> participants = {
+        {"Algorithm 1 (Participant 1)", participant1},
+        {"Algorithm 2 (Participant 2)", participant2},
+        {"Algorithm 3 (Participant 3)", participant3},
+        {"Algorithm 4 (Participant 4)", participant4}
+    };
+
+    // Тестирование каждой функции
+    for (auto& [name, search_func] : participants) {
+        try {
+            cout << "--- " << name << " ---" << endl;
             
-            double time_ms = duration_cast<microseconds>(end - start).count() / 1000.0;
+            auto start_time = high_resolution_clock::now();
+            auto [found, indices] = search_func(filename, word, false);
+            auto end_time = high_resolution_clock::now();
+            auto duration = duration_cast<microseconds>(end_time - start_time);
             
-            results.push_back({searcher.first, count, time_ms});
+            // Вывод результатов
+            cout << "Found: " << (found ? "TRUE" : "FALSE") << endl;
+            cout << "Indices: ";
+            if (indices.empty()) {
+                cout << "[]";
+            } else {
+                cout << "[";
+                for (size_t i = 0; i < indices.size(); ++i) {
+                    cout << indices[i];
+                    if (i < indices.size() - 1) cout << ", ";
+                }
+                cout << "]";
+            }
+            cout << "\nTime: " << duration.count() << " microseconds" << endl;
+            cout << endl;
             
-            cout << searcher.first << ": " << count << " вхождений, " 
-                 << time_ms << " мс" << endl;
+        } catch (const exception& e) {
+            cerr << "ERROR in " << name << ": " << e.what() << endl;
+            cout << endl;
         }
-        
-        // Запись результатов в файл
-        writeResultsToFile(results, pattern);
-        
-        // Определение победителя
-        auto best = min_element(results.begin(), results.end(),
-            [](const SearchResult& a, const SearchResult& b) {
-                return a.time_ms < b.time_ms;
-            });
-        
-        cout << "\nЛучший результат: " << best->name << endl;
-        cout << "Время: " << best->time_ms << " мс" << endl;
-        cout << "Найдено вхождений: " << best->count << endl;
-        cout << "\nПолные результаты сохранены в search_results.txt" << endl;
-        
-    } catch (const exception& e) {
-        cerr << "Ошибка: " << e.what() << endl;
-        return 1;
     }
-    
+
     return 0;
 }
